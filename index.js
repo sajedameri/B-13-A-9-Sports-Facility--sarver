@@ -41,6 +41,11 @@ async function run() {
       res.json(result)
     });
 
+    app.get("/FeaturedFacilities ", async (req, res) => {
+  const result = await facilityCollection.find().limit(6).toArray();
+  res.json(result);
+});
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
