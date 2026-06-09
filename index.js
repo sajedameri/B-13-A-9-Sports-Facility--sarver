@@ -41,6 +41,23 @@ async function run() {
       res.json(result)
     });
 
+    app.patch('/facility/:id', async(req, res) =>{
+      const{id} = req.params
+      const updatedData = req.body
+      const result = await facilityCollection.updateOne(
+        {_id:new ObjectId(id)},
+        {$set:updatedData}
+
+      )
+      res.json(result)
+    });
+
+    app.delete('/facility/:id', async(req, res) =>{
+       const{id} = req.params;
+       const result = await facilityCollection.deleteOne({_id: new ObjectId(id)})
+       res.json(result);
+    });
+
     app.get("/FeaturedFacilities ", async (req, res) => {
   const result = await facilityCollection.find().limit(6).toArray();
   res.json(result);
