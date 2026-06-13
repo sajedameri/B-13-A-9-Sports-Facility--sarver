@@ -58,6 +58,11 @@ async function run() {
        const result = await facilityCollection.deleteOne({_id: new ObjectId(id)})
        res.json(result);
     });
+      app.get('/booking/:userId', async (req, res) =>{
+        const {userId} =req.params;
+        const result = await bookingCollection.find({userId:userId}) .toArray();
+res.json(result)
+      });
 
     app.post("/booking", async(req, res) =>{
       const bookingData = req.body;
@@ -65,6 +70,8 @@ async function run() {
       res.json(result);
 
     });
+
+  
 
     app.get("/FeaturedFacilities ", async (req, res) => {
   const result = await facilityCollection.find().limit(6).toArray();
