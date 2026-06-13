@@ -24,6 +24,7 @@ async function run() {
 
     const db = client.db("sportnest");
     const facilityCollection = db.collection("facilities");
+    const bookingCollection = db.collection("bookings")
 
     app.get('/facility', async(req , res)=>{
       const result = await facilityCollection.find().toArray();
@@ -56,6 +57,13 @@ async function run() {
        const{id} = req.params;
        const result = await facilityCollection.deleteOne({_id: new ObjectId(id)})
        res.json(result);
+    });
+
+    app.post("/booking", async(req, res) =>{
+      const bookingData = req.body;
+      const result = await bookingCollection.insertOne(bookingData);
+      res.json(result);
+
     });
 
     app.get("/FeaturedFacilities ", async (req, res) => {
