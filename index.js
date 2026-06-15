@@ -52,6 +52,15 @@ async function run() {
       )
       res.json(result)
     });
+     app.delete('/booking/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  const result = await bookingCollection.deleteOne({
+    _id: new ObjectId(userId),
+  });
+
+  res.json(result);
+});
 
     app.delete('/facility/:id', async(req, res) =>{
        const{id} = req.params;
@@ -65,6 +74,12 @@ res.json(result)
 console.log(result)
       });
 
+      app.get('/facility/:userEmail',async(req,res)=>{
+  const{userEmail}=req.params
+  const result=await facilityCollection.find({added_By:userEmail}).toArray()
+  res.json(result)
+})
+
     app.post("/booking", async(req, res) =>{
       const bookingData = req.body;
       const result = await bookingCollection.insertOne(bookingData);
@@ -73,15 +88,43 @@ console.log(result)
     });
 
     app.delete("/booking/:bookingId" , async (req, res) =>{
-      const {bookingId} =res.params;
+      const {bookingId} =req.params;
       const result = await bookingCollection.deleteOne({_id: new ObjectId(bookingId)});
       res.json(result)
 
     });
 
+   
+
+app.get("/facility", async (req, res) => {
+  const search = req.query.search || "";
+  const sport = req.query.sport || "";
+
+  const query = {};
+
+  if (search) {
+    query.facilityName = {
+      $regex: search,
+      $options: "i",
+    };
+  
+  }
+  console.log(search)
+
+  if (sport) {
+    query.facilityType = {
+      $in: [sport],
+    };
+  }
+
+  const result = await facilityCollection.find(query).toArray();
+  res.send(result);
+  console.log(result)
+});
+
   
 
-    app.get("/FeaturedFacilities ", async (req, res) => {
+    app.get("/FeaturedFacilities", async (req, res) => {
   const result = await facilityCollection.find().limit(6).toArray();
   res.json(result);
 });
