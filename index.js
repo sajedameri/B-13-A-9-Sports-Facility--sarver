@@ -1,14 +1,14 @@
 const express = require("express");
 const env = require("dotenv").config();
-const cors = require('cors');
-const { MongoClient, ServerApiVersion , ObjectId } = require("mongodb");
+const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const uri = process.env.GONGODB_URL;
 console.log(uri);
 const app = express();
 const port = process.env.PORT;
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -24,110 +24,122 @@ async function run() {
 
     const db = client.db("sportnest");
     const facilityCollection = db.collection("facilities");
-    const bookingCollection = db.collection("bookings")
+    const bookingCollection = db.collection("bookings");
 
-    app.get('/facility', async(req , res)=>{
+    app.get("/facility", async (req, res) => {
       const result = await facilityCollection.find().toArray();
       res.json(result);
     });
     app.post("/facility", async (req, res) => {
       const facilityData = req.body;
-      const result = await facilityCollection.insertOne(facilityData)
-      res.json(result)
+      const result = await facilityCollection.insertOne(facilityData);
+      res.json(result);
     });
+    // middleware
+    app.get(
+      "/facility/:id",
+      (req, res, next) => {
+        const header = req.headers.authorization;
+       if(header==="logged in"){
+next()
+       }else{
+        res.status(401).json({message:"unauthorized"})
+       }
+        
+      },
+      async (req, res) => {
+        const { id } = req.params;
+        const result = await facilityCollection.findOne({
+          _id: new ObjectId(id),
+        });
+        res.json(result);
+      },
+    );
 
-    app.get('/facility/:id', async ( req,res) =>{
-      const{id} = req.params
-      const result = await facilityCollection.findOne({_id: new ObjectId(id)})
-      res.json(result)
-    });
-
-    app.patch('/facility/:id', async(req, res) =>{
-      const{id} = req.params
-      const updatedData = req.body
+    app.patch("/facility/:id", async (req, res) => {
+      const { id } = req.params;
+      const updatedData = req.body;
       const result = await facilityCollection.updateOne(
-        {_id:new ObjectId(id)},
-        {$set:updatedData}
-
-      )
-      res.json(result)
+        { _id: new ObjectId(id) },
+        { $set: updatedData },
+      );
+      res.json(result);
     });
-     app.delete('/booking/:userId', async (req, res) => {
-  const { userId } = req.params;
+    app.delete("/booking/:userId", async (req, res) => {
+      const { userId } = req.params;
 
-  const result = await bookingCollection.deleteOne({
-    _id: new ObjectId(userId),
-  });
-
-  res.json(result);
-});
-
-    app.delete('/facility/:id', async(req, res) =>{
-       const{id} = req.params;
-       const result = await facilityCollection.deleteOne({_id: new ObjectId(id)})
-       res.json(result);
-    });
-      app.get('/booking/:userId', async (req, res) =>{
-        const {userId} =req.params;
-        const result = await bookingCollection.find({userId:userId}).toArray();
-res.json(result)
-console.log(result)
+      const result = await bookingCollection.deleteOne({
+        _id: new ObjectId(userId),
       });
 
-      app.get('/facility/:userEmail',async(req,res)=>{
-  const{userEmail}=req.params
-  const result=await facilityCollection.find({added_By:userEmail}).toArray()
-  res.json(result)
-})
+      res.json(result);
+    });
 
-    app.post("/booking", async(req, res) =>{
+    app.delete("/facility/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await facilityCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.json(result);
+    });
+    app.get("/booking/:userId", async (req, res) => {
+      const { userId } = req.params;
+      const result = await bookingCollection.find({ userId: userId }).toArray();
+      res.json(result);
+      console.log(result);
+    });
+
+    app.get("/facility/:userEmail", async (req, res) => {
+      const { userEmail } = req.params;
+      const result = await facilityCollection
+        .find({ added_By: userEmail })
+        .toArray();
+      res.json(result);
+    });
+
+    app.post("/booking", async (req, res) => {
       const bookingData = req.body;
       const result = await bookingCollection.insertOne(bookingData);
       res.json(result);
-
     });
 
-    app.delete("/booking/:bookingId" , async (req, res) =>{
-      const {bookingId} =req.params;
-      const result = await bookingCollection.deleteOne({_id: new ObjectId(bookingId)});
-      res.json(result)
-
+    app.delete("/booking/:bookingId", async (req, res) => {
+      const { bookingId } = req.params;
+      const result = await bookingCollection.deleteOne({
+        _id: new ObjectId(bookingId),
+      });
+      res.json(result);
     });
 
-   
+    app.get("/facility", async (req, res) => {
+      const search = req.query.search || "";
+      const sport = req.query.sport || "";
+      console.log(search);
+      const query = {};
 
-app.get("/facility", async (req, res) => {
-  const search = req.query.search || "";
-  const sport = req.query.sport || "";
+      if (search) {
+        query.facilityName = {
+          $regex: search,
+          $options: "i",
+        };
+      }
+      console.log(search);
 
-  const query = {};
+      if (sport) {
+        query.facilityType = {
+          $in: [sport],
+        };
+      }
 
-  if (search) {
-    query.facilityName = {
-      $regex: search,
-      $options: "i",
-    };
-  
-  }
-  console.log(search)
-
-  if (sport) {
-    query.facilityType = {
-      $in: [sport],
-    };
-  }
-
-  const result = await facilityCollection.find(query).toArray();
-  res.send(result);
-  console.log(result)
-});
-
-  
+      const result = await facilityCollection.find(query).toArray();
+      res.send(result);
+      console.log(result);
+    });
 
     app.get("/FeaturedFacilities", async (req, res) => {
-  const result = await facilityCollection.find().limit(6).toArray();
-  res.json(result);
-});
+      const result = await facilityCollection.find().limit(6).toArray();
+      res.json(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
