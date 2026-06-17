@@ -17,6 +17,11 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+const verifyToken = (req, res, next)=>{
+  const authHeader = req?.headers.authorization
+  console.log(authHeader)
+  next()
+}
 
 async function run() {
   try {
@@ -37,17 +42,7 @@ async function run() {
     });
     // middleware
     app.get(
-      "/facility/:id",
-      (req, res, next) => {
-        const header = req.headers.authorization;
-       if(header==="logged in"){
-next()
-       }else{
-        res.status(401).json({message:"unauthorized"})
-       }
-        
-      },
-      async (req, res) => {
+      "/facility/:id",verifyToken, async (req, res) => {
         const { id } = req.params;
         const result = await facilityCollection.findOne({
           _id: new ObjectId(id),
