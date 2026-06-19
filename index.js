@@ -134,7 +134,7 @@ async function run() {
       }
     });
 
-    app.get("/booking/:userId",verifyToken, async (req, res) => {
+    app.get("/booking/:userId", async (req, res) => {
       console.log("GET /booking/:userId targeted for user ID:", req.params.userId);
       const { userId } = req.params;
       const result = await bookingCollection.find({ userId: userId }).toArray();
