@@ -73,3 +73,4 @@ uploads/
 prisma/dev.db
 prisma/dev.db-journal
 wuu-nrty-wkt
+.vercel
